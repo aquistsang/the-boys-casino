@@ -25,6 +25,51 @@ const GAME_CONFIG = {
   multiplierTrackSteps: 12, // How many future multipliers to show on track
 };
 
+// Keycap legends for 5×5 grid (TKL-style layout labels)
+const KEYCAP_LABELS = [
+  'Q', 'W', 'E', 'R', 'T',
+  'A', 'S', 'D', 'F', 'G',
+  'Z', 'X', 'C', 'V', 'B',
+  '1', '2', '3', '4', '5',
+  '!', '@', '#', '$', '%',
+];
+
+// ============================================================
+// MECHANICAL CLICK SOUND (Web Audio API)
+// ============================================================
+
+let audioCtx = null;
+
+function playKeyClick() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(800 + Math.random() * 400, audioCtx.currentTime);
+    osc.type = 'square';
+    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.06);
+  } catch (_) { /* audio unavailable */ }
+}
+
+function buildKeycapHTML(id, sublabel = '') {
+  const legend = KEYCAP_LABELS[id % KEYCAP_LABELS.length];
+  return `
+    <span class="tile__legend">${legend}</span>
+    ${sublabel ? `<span class="tile__sublegend">${sublabel}</span>` : ''}
+  `;
+}
+
+function animateKeyPress(el) {
+  if (!el) return;
+  el.classList.add('tile--pressing', 'keycap--pressed');
+  setTimeout(() => el.classList.remove('tile--pressing', 'keycap--pressed'), 150);
+}
+
 // ============================================================
 // MULTIPLIER CURVE
 // ============================================================
@@ -263,10 +308,17 @@ class MinesGame {
     });
 
     // Game actions
-    this.el.startBtn.addEventListener('click', () => this.startGame());
-    this.el.randomTileBtn.addEventListener('click', () => this.pickRandomTile());
-    this.el.cashOutBtn.addEventListener('click', () => this.cashOut());
-    this.el.newRoundBtn.addEventListener('click', () => this.newRound());
+    this.el.startBtn.addEventListener('click', () => { playKeyClick(); this.startGame(); });
+    this.el.randomTileBtn.addEventListener('click', () => { playKeyClick(); this.pickRandomTile(); });
+    this.el.cashOutBtn.addEventListener('click', () => { playKeyClick(); this.cashOut(); });
+    this.el.newRoundBtn.addEventListener('click', () => { playKeyClick(); this.newRound(); });
+
+    // Mechanical press feedback on all keycap buttons
+    document.querySelectorAll('.keycap').forEach((btn) => {
+      btn.addEventListener('mousedown', () => btn.classList.add('keycap--pressed'));
+      btn.addEventListener('mouseup', () => btn.classList.remove('keycap--pressed'));
+      btn.addEventListener('mouseleave', () => btn.classList.remove('keycap--pressed'));
+    });
 
     // Provably fair
     this.el.pfToggle.addEventListener('click', () => this.toggleProvablyFair());
@@ -400,6 +452,7 @@ class MinesGame {
     const tile = this.state.tiles[tileId];
     if (tile.isRevealed) return;
 
+    playKeyClick();
     tile.isRevealed = true;
 
     if (tile.isMine) {
@@ -501,45 +554,57 @@ class MinesGame {
   renderGrid() {
     this.el.gameGrid.innerHTML = '';
 
+    const renderKeycap = (el, id, extraClass = '', innerHTML = '') => {
+      el.className = `tile ${extraClass}`.trim();
+      el.setAttribute('role', 'gridcell');
+      el.dataset.id = id;
+      if (innerHTML) {
+        el.innerHTML = innerHTML;
+      } else {
+        el.innerHTML = buildKeycapHTML(id);
+      }
+      return el;
+    };
+
     this.state.tiles.forEach((tile) => {
       const el = document.createElement('button');
-      el.className = 'tile';
-      el.setAttribute('role', 'gridcell');
-      el.dataset.id = tile.id;
 
       if (tile.isRevealed) {
-        el.classList.add('tile--revealed');
         if (tile.isMine) {
-          el.classList.add('tile--mine');
-          el.innerHTML = '<span class="tile__icon">💣</span>';
+          renderKeycap(el, tile.id, 'tile--revealed tile--mine',
+            '<span class="tile__icon">💥</span>');
         } else {
-          el.classList.add('tile--safe');
-          el.innerHTML = '<span class="tile__icon">💎</span>';
+          renderKeycap(el, tile.id, 'tile--revealed tile--safe',
+            '<span class="tile__icon">💎</span>');
         }
       } else if (
         this.state.gameStatus === 'gameover' ||
         this.state.gameStatus === 'cashedout'
       ) {
-        // Show unrevealed mines after round ends
         if (tile.isMine) {
-          el.classList.add('tile--mine-unrevealed');
+          renderKeycap(el, tile.id, 'tile--mine-unrevealed tile--disabled',
+            buildKeycapHTML(tile.id, 'MINE'));
+        } else {
+          renderKeycap(el, tile.id, 'tile--disabled');
         }
-        el.classList.add('tile--disabled');
       } else if (this.state.gameStatus !== 'playing') {
-        el.classList.add('tile--disabled');
+        renderKeycap(el, tile.id, 'tile--disabled');
       } else {
-        el.addEventListener('click', () => this.revealTile(tile.id));
+        renderKeycap(el, tile.id);
+        el.addEventListener('click', () => {
+          animateKeyPress(el);
+          this.revealTile(tile.id);
+        });
       }
 
       this.el.gameGrid.appendChild(el);
     });
 
-    // If no tiles yet (idle), render placeholder grid
+    // Placeholder grid when idle
     if (this.state.tiles.length === 0) {
       for (let i = 0; i < this.state.totalTiles; i++) {
         const el = document.createElement('button');
-        el.className = 'tile tile--disabled';
-        el.setAttribute('role', 'gridcell');
+        renderKeycap(el, i, 'tile--disabled');
         this.el.gameGrid.appendChild(el);
       }
     }
@@ -600,8 +665,8 @@ class MinesGame {
     const safeTiles = this.state.totalTiles - this.state.minesCount;
     const remaining = safeTiles - this.state.safeRevealed;
     this.el.minesInfo.textContent = isPlaying
-      ? `${this.state.minesCount} mines · ${remaining} / ${safeTiles} safe remaining`
-      : `${this.state.minesCount} mines · ${safeTiles} safe tiles`;
+      ? `${this.state.minesCount} mines · ${remaining} / ${safeTiles} keys left`
+      : `${this.state.minesCount} mines · ${safeTiles} safe keys`;
 
     // Buttons
     this.el.startBtn.disabled = isPlaying;

@@ -3,126 +3,1171 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Boys Casino — Mines</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <title>KeyMines 65% — Mechanical Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       THEME — edit :root to reskin the entire keyboard
+       --u = base key unit (1u width of a standard alpha key)
+       ============================================================ */
+    :root {
+      --u: clamp(28px, 4.2vw, 44px);
+      --key-gap: clamp(3px, 0.6vw, 5px);
+      --key-depth: 3px;
+      --key-radius: 5px;
+
+      --case-bg: #1a1a1a;
+      --case-edge: #2a2a2a;
+      --brass: #b8860b;
+      --brass-dim: #8b6914;
+
+      --oled-bg: #050505;
+      --oled-text: #e8e8e8;
+      --oled-green: #00e676;
+      --oled-gold: #d4af37;
+
+      /* Interactive alphas — light PBT cream (legends dark & readable) */
+      --key-face: #d8d2c4;
+      --key-top: #efe9dc;
+      --key-side: #a89f8d;
+      --key-wall: #7d745f;      /* visible front wall of the keycap */
+      --key-legend: #3a342a;
+
+      /* Decorative keys — medium grey (clearly lighter than the plate) */
+      --deco-face: #55565a;
+      --deco-top: #6a6b70;
+      --deco-side: #3d3e42;
+      --deco-wall: #2b2c30;
+      --deco-legend: #c8c9cd;
+
+      --key-safe: #e8e0d5;
+      --key-safe-glow: #00e676;
+      --key-mine: #d32f2f;
+      --key-mine-glow: #ff5252;
+
+      --font-ui: 'Outfit', system-ui, sans-serif;
+      --font-key: 'IBM Plex Mono', 'Courier New', monospace;
+
+      --t-press: 0.1s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(8px, 2vw, 20px);
+      font-family: var(--font-ui);
+      background: #0c0c0c;
+      color: var(--oled-text);
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input { font-family: inherit; }
+
+    /* ===== CHASSIS ===== */
+    .chassis {
+      width: min(100%, 920px);
+      background: linear-gradient(165deg, var(--case-edge), var(--case-bg) 50%, #111);
+      border-radius: 10px;
+      border: 1px solid #333;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chassis::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 10px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--brass), transparent 40%, var(--brass-dim));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* ===== OLED TOP BAR ===== */
+    .oled-bar {
+      margin: clamp(10px, 2vw, 16px);
+      margin-bottom: 10px;
+      padding: clamp(10px, 2vw, 14px);
+      background: var(--oled-bg);
+      border: 1px solid #222;
+      border-radius: 6px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.9);
+    }
+
+    .oled-bar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 30%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+      pointer-events: none;
+    }
+
+    .brand h1 { font-size: clamp(0.85rem, 2.5vw, 1rem); color: var(--oled-gold); font-weight: 800; }
+    .brand p { font-family: var(--font-key); font-size: 0.55rem; color: #444; letter-spacing: 0.1em; }
+
+    .mode-pill {
+      display: inline-flex;
+      margin-top: 6px;
+      background: #111;
+      border-radius: 4px;
+      padding: 2px;
+      border: 1px solid #333;
+    }
+
+    .mode-pill button {
+      padding: 4px 10px;
+      font-family: var(--font-key);
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #555;
+      border-radius: 3px;
+    }
+
+    .mode-pill button.on { background: #1a3d28; color: var(--oled-green); }
+
+    .oled-center { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-key);
+      font-size: 0.6rem;
+      color: #555;
+    }
+
+    .stepper-box {
+      display: flex;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 3px;
+    }
+
+    .stepper-box button { padding: 3px 7px; color: #777; font-weight: 700; }
+    .stepper-box button:hover { color: var(--oled-gold); }
+    .stepper-box input {
+      width: 48px;
+      background: transparent;
+      border: none;
+      color: var(--oled-text);
+      text-align: center;
+      font-family: var(--font-key);
+      font-size: 0.7rem;
+      font-weight: 700;
+      -moz-appearance: textfield;
+    }
+    .stepper-box input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .hint { font-family: var(--font-key); font-size: 0.5rem; color: #444; }
+
+    .oled-right { text-align: right; font-family: var(--font-key); }
+    .oled-right .lbl { font-size: 0.5rem; color: #444; letter-spacing: 0.1em; }
+    .oled-right .val { font-size: clamp(0.75rem, 2vw, 0.9rem); font-weight: 700; }
+    .oled-right .val--bal { color: var(--oled-green); }
+    .oled-right .val--mult { color: var(--oled-gold); font-size: clamp(0.9rem, 2.5vw, 1.1rem); }
+    .oled-right .val--profit { color: var(--oled-green); font-size: 0.7rem; }
+
+    /* ===== KEYBOARD PLATE ===== */
+    .kb-wrap {
+      padding: 0 clamp(8px, 2vw, 16px) 8px;
+      overflow-x: auto;
+    }
+
+    .kb {
+      display: flex;
+      flex-direction: column;
+      gap: var(--key-gap);
+      width: fit-content;
+      margin: 0 auto;
+      padding: 10px;
+      background: #141414;
+      border-radius: 8px;
+      border: 1px solid #222;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+  /* Each row: flex with keys sized in --u units */
+    .kb-row {
+      display: flex;
+      gap: var(--key-gap);
+      height: var(--u);
+    }
+
+    /* ===== KEYCAP (SA profile — layered 3D) =====
+       3D is built from stacked box-shadows:
+       1. front wall (solid color, gives the cap its height)
+       2. darker base under the wall
+       3. drop shadow onto the plate
+       plus an inset highlight on the top edge and a
+       radial "spherical dish" on the face. */
+    .key {
+      height: 100%;
+      border-radius: var(--key-radius) var(--key-radius) calc(var(--key-radius) + 2px) calc(var(--key-radius) + 2px);
+      background:
+        radial-gradient(ellipse 90% 65% at 50% 30%, rgba(255,255,255,0.25), transparent 65%),
+        linear-gradient(180deg, var(--key-top) 0%, var(--key-face) 58%, var(--key-side) 100%);
+      border: 1px solid rgba(0,0,0,0.35);
+      box-shadow:
+        0 var(--key-depth) 0 var(--key-wall),
+        0 calc(var(--key-depth) + 2px) 0 rgba(0,0,0,0.55),
+        0 calc(var(--key-depth) + 6px) 8px rgba(0,0,0,0.45),
+        inset 0 2px 1px rgba(255,255,255,0.55),
+        inset 0 -3px 4px rgba(0,0,0,0.18),
+        inset 2px 0 3px rgba(0,0,0,0.08),
+        inset -2px 0 3px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 5px;
+      font-family: var(--font-key);
+      font-size: clamp(0.55rem, 2vw, 0.8rem);
+      font-weight: 700;
+      color: var(--key-legend);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+      user-select: none;
+      transition: transform var(--t-press), box-shadow var(--t-press), filter var(--t-press);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .key--deco {
+      background:
+        radial-gradient(ellipse 90% 65% at 50% 30%, rgba(255,255,255,0.12), transparent 65%),
+        linear-gradient(180deg, var(--deco-top) 0%, var(--deco-face) 58%, var(--deco-side) 100%);
+      color: var(--deco-legend);
+      text-shadow: 0 -1px 0 rgba(0,0,0,0.5);
+      font-size: clamp(0.45rem, 1.5vw, 0.6rem);
+      box-shadow:
+        0 var(--key-depth) 0 var(--deco-wall),
+        0 calc(var(--key-depth) + 2px) 0 rgba(0,0,0,0.55),
+        0 calc(var(--key-depth) + 6px) 8px rgba(0,0,0,0.45),
+        inset 0 2px 1px rgba(255,255,255,0.18),
+        inset 0 -3px 4px rgba(0,0,0,0.3);
+    }
+
+    .key:active, .key.key--down {
+      transform: translateY(var(--key-depth)) scale(0.98);
+      box-shadow:
+        0 0 0 var(--key-wall),
+        0 1px 0 rgba(0,0,0,0.5),
+        0 2px 3px rgba(0,0,0,0.35),
+        inset 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    .key--interactive:not(.key--revealed):hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    .key--safe {
+      background:
+        radial-gradient(ellipse 90% 65% at 50% 30%, rgba(255,255,255,0.35), transparent 65%),
+        linear-gradient(180deg, #b8f5cf 0%, #7de8a8 58%, #4bc47e 100%) !important;
+      color: #0d3a20 !important;
+      box-shadow:
+        0 var(--key-depth) 0 #2e8a55,
+        0 calc(var(--key-depth) + 2px) 0 rgba(0,0,0,0.5),
+        0 0 18px rgba(0,230,118,0.6),
+        inset 0 2px 1px rgba(255,255,255,0.6) !important;
+      animation: safePop 0.35s ease;
+    }
+
+    .key--mine {
+      background:
+        radial-gradient(ellipse 90% 65% at 50% 30%, rgba(255,255,255,0.25), transparent 65%),
+        linear-gradient(180deg, #ff7a6e 0%, #e53935 58%, #a02020 100%) !important;
+      box-shadow:
+        0 var(--key-depth) 0 #6e1414,
+        0 calc(var(--key-depth) + 2px) 0 rgba(0,0,0,0.5),
+        0 0 22px rgba(255,23,68,0.75),
+        inset 0 2px 1px rgba(255,255,255,0.35) !important;
+      animation: mineShake 0.45s ease;
+    }
+
+    .key--mine-ghost {
+      background: linear-gradient(180deg, #7a3030 0%, #4a1515 100%) !important;
+      color: #c98080 !important;
+      text-shadow: none !important;
+      opacity: 0.75;
+      box-shadow:
+        0 var(--key-depth) 0 #2a0a0a,
+        0 calc(var(--key-depth) + 2px) 0 rgba(0,0,0,0.5) !important;
+    }
+
+    .key--disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .key__ripple {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%);
+      animation: ripple 0.45s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes safePop { 0% { transform: scale(0.9); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+    @keyframes mineShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+    @keyframes ripple { from{transform:scale(0);opacity:1} to{transform:scale(2);opacity:0} }
+
+    /* ===== MESSAGE ===== */
+    .msg {
+      text-align: center;
+      font-family: var(--font-key);
+      font-size: 0.68rem;
+      color: #555;
+      padding: 6px;
+      min-height: 1.4em;
+    }
+    .msg--win { color: var(--oled-green); }
+    .msg--lose { color: var(--key-mine-glow); }
+    .msg--info { color: #00bcd4; }
+
+    /* ===== MULTIPLIER TRACK ===== */
+    .track {
+      margin: 0 clamp(8px, 2vw, 16px) 8px;
+      padding: 8px 12px 10px;
+      background: linear-gradient(180deg, #c9a020, var(--brass-dim));
+      border-radius: 5px;
+      border: 1px solid var(--brass);
+      overflow-x: auto;
+    }
+
+    .track__lbl {
+      font-family: var(--font-key);
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      color: rgba(0,0,0,0.45);
+      margin-bottom: 6px;
+    }
+
+    .track__bar {
+      display: flex;
+      position: relative;
+      min-width: max-content;
+      padding: 6px 0;
+    }
+
+    .track__bar::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 2px;
+      background: rgba(0,0,0,0.3);
+      transform: translateY(-50%);
+    }
+
+    .tick {
+      flex: 1;
+      min-width: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 1;
+    }
+
+    .tick__dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.35);
+      transition: all 0.2s;
+    }
+
+    .tick__lbl {
+      font-family: var(--font-key);
+      font-size: 0.52rem;
+      color: rgba(0,0,0,0.5);
+      font-weight: 600;
+    }
+
+    .tick--on .tick__dot {
+      background: var(--oled-gold);
+      box-shadow: 0 0 10px rgba(212,175,55,0.8);
+      transform: scale(1.4);
+    }
+
+    .tick--passed .tick__dot { background: #2a5a20; }
+    .tick--passed .tick__lbl { color: #1a3a10; }
+
+    /* ===== ACTION BAR ===== */
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto;
+      gap: 8px;
+      padding: 0 clamp(8px, 2vw, 16px) 8px;
+    }
+
+    .act {
+      font-family: var(--font-key);
+      font-weight: 700;
+      font-size: clamp(0.58rem, 1.8vw, 0.72rem);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      border-radius: var(--key-radius);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: transform var(--t-press);
+    }
+
+    .act:active:not(:disabled) { transform: scale(0.95) translateY(2px); }
+    .act:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .act--start {
+      background: linear-gradient(180deg, #e8c84a, #a08018);
+      color: #1a1000;
+      box-shadow: 0 3px 0 #604010;
+      justify-self: start;
+    }
+
+    .act--random {
+      background: linear-gradient(180deg, #444, #2a2a2a);
+      color: #bbb;
+      box-shadow: 0 3px 0 #111;
+      justify-self: center;
+    }
+
+    .act--cash {
+      background: linear-gradient(180deg, #3de8a0, #128a58);
+      color: #0a2018;
+      box-shadow: 0 3px 0 #0a5030;
+      justify-self: end;
+    }
+
+    .act--new {
+      background: #2a2a2a;
+      color: #888;
+      box-shadow: 0 3px 0 #111;
+      font-size: 0.58rem;
+      padding: 12px 10px;
+    }
+
+    /* ===== BRASS WEIGHT + RGB + PF ===== */
+    .brass-weight {
+      text-align: center;
+      padding: 7px;
+      font-family: var(--font-key);
+      font-size: clamp(0.48rem, 1.4vw, 0.58rem);
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: rgba(0,0,0,0.4);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin: 0 clamp(8px, 2vw, 16px);
+    }
+
+    .rgb {
+      height: 3px;
+      margin: 6px clamp(8px, 2vw, 16px) clamp(8px, 2vw, 16px);
+      border-radius: 2px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.4);
+      transition: all 0.4s;
+    }
+
+    .chassis[data-state="playing"] .rgb { background: var(--oled-green); box-shadow: 0 0 14px var(--oled-green); }
+    .chassis[data-state="gameover"] .rgb { background: #ff1744; box-shadow: 0 0 14px #ff1744; animation: flash 0.3s ease 3; }
+    .chassis[data-state="cashedout"] .rgb {
+      background: linear-gradient(90deg, var(--oled-green), var(--oled-gold), var(--oled-green));
+      background-size: 200% 100%;
+      animation: scroll 1.2s linear infinite;
+    }
+
+    @keyframes flash { 50% { opacity: 0.4; } }
+    @keyframes scroll { to { background-position: 200% 0; } }
+
+    .pf {
+      position: absolute;
+      bottom: 10px; right: 14px;
+      font-family: var(--font-key);
+      font-size: 0.48rem;
+      color: #444;
+      letter-spacing: 0.06em;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 5px; height: 5px;
+      pointer-events: none;
+      z-index: 999;
+      animation: fall 0.9s ease-out forwards;
+    }
+
+    /* Diamond rising out of a safely revealed key */
+    .float-gem {
+      position: fixed;
+      transform: translate(-50%, 0);
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      pointer-events: none;
+      z-index: 999;
+      filter: drop-shadow(0 0 8px rgba(0, 230, 118, 0.9));
+      animation: gemRise 0.9s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+    }
+
+    @keyframes gemRise {
+      0%   { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+      15%  { opacity: 1; }
+      60%  { transform: translate(-50%, -42px) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -64px) scale(1.05); opacity: 0; }
+    }
+
+    @keyframes fall {
+      to { transform: translateY(100px) rotate(540deg); opacity: 0; }
+    }
+
+    @media (max-width: 600px) {
+      .oled-bar { grid-template-columns: 1fr; text-align: center; }
+      .oled-right { text-align: center; }
+      .actions { grid-template-columns: 1fr 1fr; }
+      .act--start, .act--new { grid-column: 1 / -1; }
+    }
+  </style>
 </head>
 <body>
-  <div class="app">
-    <!-- ===== HEADER ===== -->
-    <header class="header">
-      <div class="header__brand">
-        <span class="header__logo">💎</span>
-        <h1 class="header__title">Mines</h1>
+
+<div class="chassis" id="chassis" data-state="idle">
+  <!-- OLED BAR -->
+  <div class="oled-bar">
+    <div class="brand">
+      <h1>KeyMines 65%</h1>
+      <p>Mechanical Edition</p>
+      <div class="mode-pill">
+        <button class="on" data-mode="demo">DEMO</button>
+        <button data-mode="real">REAL</button>
       </div>
-
-      <div class="header__mode">
-        <button class="mode-btn mode-btn--active" data-mode="demo" id="modeDemo">FUN MODE</button>
-        <button class="mode-btn" data-mode="real" id="modeReal">REAL</button>
+    </div>
+    <div class="oled-center">
+      <div class="stepper">
+        <span>BET</span>
+        <div class="stepper-box">
+          <button id="betDn">−</button>
+          <input type="number" id="bet" value="10" min="0.01" step="0.01" />
+          <button id="betUp">+</button>
+        </div>
       </div>
-
-      <div class="header__balance">
-        <span class="balance__label">Balance</span>
-        <span class="balance__value" id="balanceDisplay">2,985.0000</span>
+      <div class="stepper">
+        <span>MINES</span>
+        <div class="stepper-box">
+          <button id="mineDn">−</button>
+          <input type="number" id="mines" value="3" min="1" max="24" />
+          <button id="mineUp">+</button>
+        </div>
       </div>
-    </header>
-
-    <!-- ===== MAIN GAME AREA ===== -->
-    <main class="game">
-      <!-- Left Panel: Controls -->
-      <aside class="controls">
-        <div class="control-group">
-          <label class="control-label" for="betAmount">Bet Amount</label>
-          <div class="bet-input">
-            <button class="bet-btn" id="betDecrease" aria-label="Decrease bet">−</button>
-            <input type="number" id="betAmount" class="bet-input__field" value="10" min="0.01" step="0.01" />
-            <button class="bet-btn" id="betIncrease" aria-label="Increase bet">+</button>
-          </div>
-          <div class="bet-quick">
-            <button class="bet-quick__btn" data-bet="half">½</button>
-            <button class="bet-quick__btn" data-bet="double">2×</button>
-            <button class="bet-quick__btn" data-bet="max">MAX</button>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label class="control-label" for="minesCount">Mines</label>
-          <div class="mines-input">
-            <button class="bet-btn" id="minesDecrease" aria-label="Decrease mines">−</button>
-            <input type="number" id="minesCount" class="mines-input__field" value="3" min="1" max="24" />
-            <button class="bet-btn" id="minesIncrease" aria-label="Increase mines">+</button>
-          </div>
-          <p class="mines-info" id="minesInfo">3 mines · 22 safe tiles</p>
-        </div>
-
-        <div class="stats-panel">
-          <div class="stat">
-            <span class="stat__label">Multiplier</span>
-            <span class="stat__value stat__value--multiplier" id="multiplierDisplay">1.00×</span>
-          </div>
-          <div class="stat">
-            <span class="stat__label">Profit</span>
-            <span class="stat__value stat__value--profit" id="profitDisplay">0.0000</span>
-          </div>
-        </div>
-
-        <div class="action-buttons">
-          <button class="btn btn--primary" id="startBtn">START GAME</button>
-          <button class="btn btn--secondary" id="randomTileBtn" disabled>PICK RANDOM TILE</button>
-          <button class="btn btn--success" id="cashOutBtn" disabled>CASH OUT</button>
-          <button class="btn btn--outline" id="newRoundBtn" hidden>NEW ROUND</button>
-        </div>
-
-        <div class="provably-fair" id="provablyFairPanel">
-          <button class="provably-fair__toggle" id="pfToggle" aria-expanded="false">
-            🔒 Provably Fair
-          </button>
-          <div class="provably-fair__details" id="pfDetails" hidden>
-            <div class="pf-field">
-              <label>Server Seed Hash</label>
-              <code id="serverSeedHash">—</code>
-            </div>
-            <div class="pf-field">
-              <label>Client Seed</label>
-              <input type="text" id="clientSeed" placeholder="Enter custom seed (optional)" />
-            </div>
-            <div class="pf-field">
-              <label>Nonce</label>
-              <code id="nonceDisplay">0</code>
-            </div>
-            <button class="btn btn--outline btn--sm" id="rotateSeedBtn">Rotate Server Seed</button>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Center: Grid -->
-      <section class="grid-section">
-        <div class="grid-wrapper">
-          <div class="grid" id="gameGrid" role="grid" aria-label="Mines game grid"></div>
-        </div>
-
-        <div class="game-message" id="gameMessage" aria-live="polite"></div>
-
-        <!-- Multiplier Track -->
-        <div class="multiplier-track">
-          <div class="multiplier-track__bar" id="multiplierTrack"></div>
-        </div>
-      </section>
-    </main>
-
-    <!-- ===== FOOTER ===== -->
-    <footer class="footer">
-      <div class="footer__mode">
-        <button class="mode-btn mode-btn--active" data-mode="demo" id="modeDemoFooter">DEMO</button>
-        <button class="mode-btn" data-mode="real" id="modeRealFooter">REAL</button>
-      </div>
-      <span class="footer__badge">🔒 Provably Fair Game</span>
-      <span class="footer__credit">The Boys Casino</span>
-    </footer>
+      <span class="hint" id="mineHint">3 mines · 22 play keys</span>
+    </div>
+    <div class="oled-right">
+      <div><span class="lbl">BALANCE </span><span class="val val--bal" id="bal">2,985.0000</span></div>
+      <div><span class="lbl">MULT </span><span class="val val--mult" id="mult">1.00×</span></div>
+      <div><span class="lbl">PROFIT </span><span class="val val--profit" id="profit">+0.0000</span></div>
+    </div>
   </div>
 
-  <script src="js/game.js"></script>
+  <!-- KEYBOARD -->
+  <div class="kb-wrap">
+    <div class="kb" id="keyboard"></div>
+  </div>
+
+  <p class="msg" id="msg"></p>
+
+  <!-- MULTIPLIER TRACK -->
+  <div class="track">
+    <div class="track__lbl">MULTIPLIER · BRASS WEIGHT BAR</div>
+    <div class="track__bar" id="track"></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="act act--start" id="btnStart">START GAME</button>
+    <button class="act act--random" id="btnRandom" disabled>RANDOM KEY</button>
+    <button class="act act--cash" id="btnCash" disabled>CASH OUT</button>
+    <button class="act act--new" id="btnNew" hidden>NEW ROUND</button>
+  </div>
+
+  <div class="brass-weight">KEYMINES · MECHANICAL</div>
+  <div class="rgb"></div>
+  <span class="pf">🔒 Provably Fair</span>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG & STATE
+   ============================================================ */
+const CONFIG = {
+  totalKeys: 25,
+  minBet: 0.01, maxBet: 10000, betStep: 1,
+  houseEdge: 0.01,
+  demoBal: 2985, realBal: 0,
+};
+
+/* 25 interactive alpha keys (A–Y, Z is decorative per spec) */
+const INTERACTIVE = ['Q','W','E','R','T','Y','U','I','O','P','A','S','D','F','G','H','J','K','L','X','C','V','B','N','M'];
+const INTERACTIVE_SET = new Set(INTERACTIVE);
+
+const gameState = {
+  grid: [],       // 25 slots: { label, gameId, isMine, isRevealed }
+  keyLabels: [],  // shuffled legends on interactive keys each round
+  minesCount: 3,
+  bet: 10,
+  multiplier: 1,
+  demoBalance: CONFIG.demoBal,
+  realBalance: CONFIG.realBal,
+  mode: 'demo',
+  gameStatus: 'idle',
+  safeRevealed: 0,
+  serverSeed: '',
+  nonce: 0,
+};
+
+/* ============================================================
+   KEYBOARD LAYOUT — ANSI 65% (widths in u units per row)
+   w = width in u, label = key legend
+   ============================================================ */
+const KB_ROWS = [
+  /* Row 0 — Number */
+  { keys: [
+    { l:'`',w:1},{ l:'1',w:1},{ l:'2',w:1},{ l:'3',w:1},{ l:'4',w:1},
+    { l:'5',w:1},{ l:'6',w:1},{ l:'7',w:1},{ l:'8',w:1},{ l:'9',w:1},
+    { l:'0',w:1},{ l:'-',w:1},{ l:'=',w:1},{ l:'Bksp',w:2},{ l:'Del',w:1},
+  ]},
+  /* Row 1 — QWERTY + nav */
+  { keys: [
+    { l:'Tab',w:1.5},{ l:'Q',w:1},{ l:'W',w:1},{ l:'E',w:1},{ l:'R',w:1},
+    { l:'T',w:1},{ l:'Y',w:1},{ l:'U',w:1},{ l:'I',w:1},{ l:'O',w:1},
+    { l:'P',w:1},{ l:'[',w:1},{ l:']',w:1},{ l:'\\',w:1.5},{ l:'PgUp',w:1},
+  ]},
+  /* Row 2 — Home */
+  { keys: [
+    { l:'Caps',w:1.75},{ l:'A',w:1},{ l:'S',w:1},{ l:'D',w:1},{ l:'F',w:1},
+    { l:'G',w:1},{ l:'H',w:1},{ l:'J',w:1},{ l:'K',w:1},{ l:'L',w:1},
+    { l:';',w:1},{ l:"'",w:1},{ l:'Enter',w:2.25},{ l:'PgDn',w:1},
+  ]},
+  /* Row 3 — Bottom alphas */
+  { keys: [
+    { l:'Shift',w:2.25},{ l:'Z',w:1},{ l:'X',w:1},{ l:'C',w:1},{ l:'V',w:1},
+    { l:'B',w:1},{ l:'N',w:1},{ l:'M',w:1},{ l:',',w:1},{ l:'.',w:1},
+    { l:'/',w:1},{ l:'Shift',w:2.75},{ l:'End',w:1},
+  ]},
+  /* Row 4 — Modifiers (right Alt + MO(1) removed; Space fills) */
+  { keys: [
+    { l:'Ctrl',w:1.25},{ l:'Win',w:1.25},{ l:'Alt',w:1.25},
+    { l:'Space',w:11.25},
+  ]},
+];
+
+/* ============================================================
+   DOM
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const dom = {
+  chassis: $('chassis'), kb: $('keyboard'), track: $('track'),
+  bal: $('bal'), mult: $('mult'), profit: $('profit'),
+  mineHint: $('mineHint'), msg: $('msg'),
+  bet: $('bet'), mines: $('mines'),
+  btnStart: $('btnStart'), btnRandom: $('btnRandom'),
+  btnCash: $('btnCash'), btnNew: $('btnNew'),
+};
+
+/* ============================================================
+   KEYPRESS SOUND — realistic mechanical "thock"
+   A real keypress is two things layered:
+   1. A broadband noise transient (plastic slider hitting the
+      housing) — white noise through a bandpass filter, ~35ms.
+   2. A low-frequency body "thump" (case/plate resonance)
+      — a sine pitched around 90–150Hz, decaying fast.
+   Slight random variation per press so repeated keys don't
+   sound machine-gun identical.
+   ============================================================ */
+let actx, noiseBuf;
+
+function getCtx() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    // Pre-build 100ms of white noise, reused by every press
+    const len = Math.floor(actx.sampleRate * 0.1);
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+function clickSound() {
+  try {
+    const ctx = getCtx();
+    const t = ctx.currentTime;
+    const vary = 0.85 + Math.random() * 0.3; // per-press variation
+
+    // --- Layer 1: impact noise (the "clack") ---
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf;
+    noise.playbackRate.value = vary;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 900 * vary;   // wooden/plastic knock region
+    bp.Q.value = 0.9;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 2600;          // kill the harsh hiss
+
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.5, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+
+    noise.connect(bp); bp.connect(lp); lp.connect(nGain); nGain.connect(ctx.destination);
+    noise.start(t);
+    noise.stop(t + 0.05);
+
+    // --- Layer 2: low body thump (the "thock") ---
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(120 * vary, t);
+    osc.frequency.exponentialRampToValueAtTime(55, t + 0.06);
+
+    const oGain = ctx.createGain();
+    oGain.gain.setValueAtTime(0.35, t);
+    oGain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+
+    osc.connect(oGain); oGain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.08);
+  } catch (_) {}
+}
+
+/* Recorded keystroke sample — played on successful (safe) reveals.
+   HTMLAudio + cloneNode allows overlapping rapid presses and
+   works on file:// where fetch/decodeAudioData would be blocked. */
+const safeSample = new Audio('sounds/office-keyboard-single-keystroke-gfx-sounds-1-1-00-00.mp3');
+safeSample.preload = 'auto';
+
+function safeSound() {
+  try {
+    const a = safeSample.cloneNode();
+    a.volume = 0.9;
+    a.play().catch(() => clickSound()); // fall back to synth if blocked
+  } catch (_) { clickSound(); }
+}
+
+function keyDown(el) {
+  el.classList.add('key--down');
+  setTimeout(() => el.classList.remove('key--down'), 100);
+}
+
+/* ============================================================
+   MULTIPLIER
+   ============================================================ */
+function calcMult(n, total = 25, mines = gameState.minesCount) {
+  if (!n) return 1;
+  let m = 1;
+  for (let i = 0; i < n; i++) m *= (total - i) / (total - mines - i);
+  return m * Math.pow(1 - CONFIG.houseEdge, n);
+}
+
+const TRACK_STEPS = 13;
+
+function buildTrack() {
+  const arr = [];
+  for (let i = 0; i < TRACK_STEPS; i++) {
+    arr.push({ r: i, m: calcMult(i) });
+  }
+  return arr;
+}
+
+/* ============================================================
+   PROVABLY FAIR
+   ============================================================ */
+function genSeed() {
+  const a = new Uint8Array(32);
+  crypto.getRandomValues(a);
+  return [...a].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function sha256(s) {
+  if (crypto.subtle) {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+  let h = 5381;
+  for (const c of s) h = ((h << 5) + h) ^ c.charCodeAt(0);
+  return (h >>> 0).toString(16).padStart(64,'0');
+}
+
+async function placeMines(count) {
+  const hash = await sha256(`${gameState.serverSeed}:client:${gameState.nonce}`);
+  const idx = [...Array(CONFIG.totalKeys).keys()];
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = (parseInt(hash.slice((i*2)%60, (i*2)%60+4), 16) || 0) % (i + 1);
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return new Set(idx.slice(0, count));
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function bal() { return gameState.mode === 'demo' ? gameState.demoBalance : gameState.realBalance; }
+function setBal(v) { gameState.mode === 'demo' ? (gameState.demoBalance = v) : (gameState.realBalance = v); }
+function fmt(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }); }
+function fmtM(m) { return m.toFixed(2) + '×'; }
+
+function setMsg(t, c = '') { dom.msg.textContent = t; dom.msg.className = 'msg' + (c ? ` msg--${c}` : ''); }
+
+/* Floating diamond that rises out of a safely revealed key */
+function spawnGem(keyEl) {
+  const r = keyEl.getBoundingClientRect();
+  const gem = document.createElement('span');
+  gem.className = 'float-gem';
+  gem.textContent = '💎';
+  gem.style.left = (r.left + r.width / 2) + 'px';
+  gem.style.top = r.top + 'px';
+  document.body.appendChild(gem);
+  setTimeout(() => gem.remove(), 950);
+}
+
+function confetti(x, y) {
+  const cols = ['#00e676','#d4af37','#00bcd4','#e8e0d5'];
+  for (let i = 0; i < 20; i++) {
+    const e = document.createElement('div');
+    e.className = 'confetti';
+    e.style.left = (x + (Math.random()-0.5)*80) + 'px';
+    e.style.top = y + 'px';
+    e.style.background = cols[i % cols.length];
+    document.body.appendChild(e);
+    setTimeout(() => e.remove(), 900);
+  }
+}
+
+/* ============================================================
+   BUILD KEYBOARD DOM
+   ============================================================ */
+function buildKeyboard() {
+  dom.kb.innerHTML = '';
+  let gameId = 0;
+
+  KB_ROWS.forEach((row, ri) => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'kb-row';
+    rowEl.dataset.row = ri;
+
+    row.keys.forEach(k => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      const isInteractive = INTERACTIVE_SET.has(k.l);
+      // Z is a letter, so it keeps the cream alpha colorway even
+      // though it's not part of the 25 playable keys
+      const isAlphaLook = isInteractive || k.l === 'Z';
+
+      el.className = 'key' + (isInteractive ? ' key--interactive' : '') + (isAlphaLook ? '' : ' key--deco');
+      el.style.width = `calc(var(--u) * ${k.w} + var(--key-gap) * ${Math.max(0, k.w - 1)})`;
+      el.dataset.label = k.l;
+
+      const lbl = document.createElement('span');
+      lbl.className = 'key__lbl';
+      lbl.textContent = k.l.length > 3 ? k.l : k.l;
+      el.appendChild(lbl);
+
+      if (isInteractive) {
+        el.dataset.gameId = gameId;
+        gameId++;
+      }
+
+      el.addEventListener('click', () => onKeyPress(el, k.l, isInteractive));
+
+      rowEl.appendChild(el);
+    });
+
+    dom.kb.appendChild(rowEl);
+  });
+}
+
+/* ============================================================
+   PHYSICAL KEYBOARD — press real keys instead of clicking
+   Letters map directly to their on-screen QWERTY key.
+   Modifier/nav keys just depress their decorative twin
+   with a click sound.
+   ============================================================ */
+const PHYS_MAP = {
+  'Tab':'Tab', 'CapsLock':'Caps', 'Shift':'Shift', 'Enter':'Enter',
+  'Backspace':'Bksp', 'Delete':'Del', 'PageUp':'PgUp', 'PageDown':'PgDn',
+  'End':'End', 'Control':'Ctrl', 'Meta':'Win', 'Alt':'Alt', ' ':'Space',
+};
+
+function onPhysicalKey(e) {
+  if (e.repeat) return;
+  // Don't hijack typing in the bet/mines inputs
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  // Let browser shortcuts through (Ctrl+R etc.) — only handle the
+  // bare modifier press itself
+  if ((e.ctrlKey || e.metaKey || e.altKey) && !(e.key in PHYS_MAP)) return;
+
+  let label = PHYS_MAP[e.key];
+  if (!label && e.key.length === 1) label = e.key.toUpperCase();
+  if (!label) return;
+
+  let el = null;
+  let interactive = false;
+
+  if (/^[A-Z]$/.test(label) && INTERACTIVE_SET.has(label)) {
+    const gid = gameState.keyLabels.indexOf(label);
+    if (gid !== -1) {
+      el = dom.kb.querySelector(`[data-game-id="${gid}"]`);
+      interactive = true;
+    }
+  }
+  if (!el) el = dom.kb.querySelector(`[data-label="${CSS.escape(label)}"]`);
+  if (!el) return;
+
+  e.preventDefault(); // stop Tab focus-move, Space scroll, Backspace nav
+  onKeyPress(el, label, interactive);
+}
+
+document.addEventListener('keydown', onPhysicalKey);
+
+/* ============================================================
+   RENDER GAME STATE ON KEYS
+   ============================================================ */
+function renderKeys() {
+  dom.kb.querySelectorAll('.key--interactive').forEach(el => {
+    const gid = +el.dataset.gameId;
+    const slot = gameState.grid[gid];
+    const lbl = el.querySelector('.key__lbl');
+
+    el.classList.remove('key--safe','key--mine','key--mine-ghost','key--revealed','key--disabled');
+
+    if (!slot) {
+      lbl.textContent = gameState.keyLabels[gid] || INTERACTIVE[gid];
+      if (gameState.gameStatus !== 'playing') el.classList.add('key--disabled');
+      return;
+    }
+
+    const legend = gameState.keyLabels[gid] || slot.label;
+
+    if (slot.isRevealed) {
+      el.classList.add('key--revealed');
+      if (slot.isMine) { el.classList.add('key--mine'); lbl.textContent = '💀'; }
+      else { el.classList.add('key--safe'); lbl.textContent = '💎'; }
+    } else if (gameState.gameStatus === 'gameover' || gameState.gameStatus === 'cashedout') {
+      el.classList.add('key--disabled');
+      if (slot.isMine) { el.classList.add('key--mine-ghost'); lbl.textContent = '·'; }
+      else lbl.textContent = legend;
+    } else if (gameState.gameStatus === 'playing') {
+      lbl.textContent = legend;
+    } else {
+      el.classList.add('key--disabled');
+      lbl.textContent = legend;
+    }
+  });
+}
+
+function renderTrack() {
+  const track = buildTrack();
+  dom.track.innerHTML = '';
+  track.forEach(n => {
+    const d = document.createElement('div');
+    d.className = 'tick';
+    if (gameState.safeRevealed > n.r) d.classList.add('tick--passed');
+    if (gameState.gameStatus === 'playing' && gameState.safeRevealed === n.r) d.classList.add('tick--on');
+    d.innerHTML = `<div class="tick__dot"></div><span class="tick__lbl">${fmtM(n.m)}</span>`;
+    dom.track.appendChild(d);
+  });
+}
+
+function updateUI() {
+  const playing = gameState.gameStatus === 'playing';
+  const ended = gameState.gameStatus === 'gameover' || gameState.gameStatus === 'cashedout';
+
+  dom.chassis.dataset.state = gameState.gameStatus;
+  dom.bal.textContent = fmt(bal());
+  dom.mult.textContent = fmtM(gameState.multiplier);
+
+  const p = (playing || ended) ? gameState.bet * gameState.multiplier - gameState.bet : 0;
+  dom.profit.textContent = (p >= 0 ? '+' : '') + fmt(p);
+
+  const safe = CONFIG.totalKeys - gameState.minesCount;
+  const left = safe - gameState.safeRevealed;
+  dom.mineHint.textContent = playing
+    ? `${gameState.minesCount} mines · ${left}/${safe} keys`
+    : `${gameState.minesCount} mines · ${safe} play keys`;
+
+  dom.btnStart.disabled = playing;
+  dom.btnRandom.disabled = !playing;
+  dom.btnCash.disabled = !playing || !gameState.safeRevealed;
+  dom.btnNew.hidden = !ended;
+
+  dom.bet.disabled = playing;
+  dom.mines.disabled = playing;
+  ['betDn','betUp','mineDn','mineUp'].forEach(id => $(id).disabled = playing);
+
+  document.querySelectorAll('[data-mode]').forEach(b => {
+    b.classList.toggle('on', b.dataset.mode === gameState.mode);
+  });
+
+  renderKeys();
+  renderTrack();
+}
+
+/* ============================================================
+   KEY PRESS — sound on ALL keys; game logic on interactive only
+   ============================================================ */
+function onKeyPress(el, label, interactive) {
+  keyDown(el);
+
+  if (!interactive || gameState.gameStatus !== 'playing') { clickSound(); return; }
+
+  const gid = +el.dataset.gameId;
+  const slot = gameState.grid[gid];
+  if (!slot || slot.isRevealed) { clickSound(); return; }
+
+  slot.isRevealed = true;
+
+  if (slot.isMine) {
+    clickSound();
+    gameState.gameStatus = 'gameover';
+    gameState.grid.forEach(s => { if (s.isMine) s.isRevealed = true; });
+    setMsg('💀 MINE — game over', 'lose');
+  } else {
+    safeSound();
+    spawnGem(el);
+    const rip = document.createElement('div');
+    rip.className = 'key__ripple';
+    el.appendChild(rip);
+    setTimeout(() => rip.remove(), 450);
+
+    gameState.safeRevealed++;
+    gameState.multiplier = calcMult(gameState.safeRevealed);
+    if (gameState.safeRevealed >= CONFIG.totalKeys - gameState.minesCount) cashOut(true);
+  }
+
+  updateUI();
+}
+
+/* ============================================================
+   GAME ACTIONS
+   ============================================================ */
+async function startGame() {
+  if (gameState.gameStatus === 'playing') return;
+
+  if (gameState.bet > bal()) { setMsg('Insufficient balance', 'lose'); return; }
+
+  setBal(bal() - gameState.bet);
+  gameState.gameStatus = 'playing';
+  gameState.safeRevealed = 0;
+  gameState.multiplier = 1;
+  gameState.keyLabels = [...INTERACTIVE]; // QWERTY order — each key keeps its printed legend
+  gameState.nonce++;
+  gameState.serverSeed = genSeed();
+
+  const mineIds = await placeMines(gameState.minesCount);
+  gameState.grid = INTERACTIVE.map((label, i) => ({
+    label,
+    gameId: i,
+    isMine: mineIds.has(i),
+    isRevealed: false,
+  }));
+
+  clickSound();
+  updateUI();
+  setMsg('Click a letter key or type it on your keyboard', 'info');
+}
+
+function newRound() {
+  gameState.gameStatus = 'idle';
+  gameState.grid = [];
+  gameState.safeRevealed = 0;
+  gameState.multiplier = 1;
+  gameState.keyLabels = [...INTERACTIVE];
+  updateUI();
+  setMsg('Press START to arm switches', 'info');
+}
+
+function randomKey() {
+  if (gameState.gameStatus !== 'playing') return;
+  const hidden = gameState.grid.filter(s => !s.isRevealed);
+  if (!hidden.length) return;
+  const pick = hidden[Math.floor(Math.random() * hidden.length)];
+  const el = dom.kb.querySelector(`[data-game-id="${pick.gameId}"]`);
+  onKeyPress(el, pick.label, true);
+}
+
+function cashOut(auto = false) {
+  if (gameState.gameStatus !== 'playing') return;
+  if (!auto && !gameState.safeRevealed) { setMsg('Reveal a key first', 'info'); return; }
+
+  const win = gameState.bet * gameState.multiplier;
+  setBal(bal() + win);
+  gameState.gameStatus = 'cashedout';
+
+  const profit = win - gameState.bet;
+  setMsg(auto ? `🎉 Cleared! +${fmt(profit)}` : `✅ ${fmtM(gameState.multiplier)} +${fmt(profit)}`, 'win');
+
+  const r = dom.chassis.getBoundingClientRect();
+  confetti(r.left + r.width/2, r.top + r.height/2);
+  clickSound();
+  updateUI();
+}
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+function bind() {
+  $('betDn').onclick = () => { if (gameState.gameStatus !== 'playing') setBet(gameState.bet - CONFIG.betStep); };
+  $('betUp').onclick = () => { if (gameState.gameStatus !== 'playing') setBet(gameState.bet + CONFIG.betStep); };
+  dom.bet.onchange = () => setBet(+dom.bet.value);
+
+  $('mineDn').onclick = () => { if (gameState.gameStatus !== 'playing') setMines(gameState.minesCount - 1); };
+  $('mineUp').onclick = () => { if (gameState.gameStatus !== 'playing') setMines(gameState.minesCount + 1); };
+  dom.mines.onchange = () => setMines(+dom.mines.value);
+
+  dom.btnStart.onclick = () => { clickSound(); startGame(); };
+  dom.btnRandom.onclick = () => { clickSound(); randomKey(); };
+  dom.btnCash.onclick = () => { clickSound(); cashOut(); };
+  dom.btnNew.onclick = () => { clickSound(); newRound(); };
+
+  document.querySelectorAll('[data-mode]').forEach(b => {
+    b.onclick = () => {
+      if (gameState.gameStatus === 'playing') return;
+      gameState.mode = b.dataset.mode;
+      updateUI();
+    };
+  });
+}
+
+function setBet(v) {
+  gameState.bet = Math.max(CONFIG.minBet, Math.min(CONFIG.maxBet, Math.round(v * 10000) / 10000));
+  dom.bet.value = gameState.bet;
+  updateUI();
+}
+
+function setMines(v) {
+  gameState.minesCount = Math.max(1, Math.min(24, v));
+  dom.mines.value = gameState.minesCount;
+  updateUI();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  gameState.keyLabels = [...INTERACTIVE];
+  buildKeyboard();
+  bind();
+  updateUI();
+  setMsg('Press START — then click keys or type on your real keyboard', 'info');
+}
+
+init();
+</script>
 </body>
 </html>
